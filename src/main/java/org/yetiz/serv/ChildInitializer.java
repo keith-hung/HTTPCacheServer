@@ -31,17 +31,17 @@ public class ChildInitializer extends ChannelInitializer<SocketChannel> {
                     FullHttpRequest request = (FullHttpRequest) msg;
                     String key = request.getUri().substring(1).replace('/', '.');
                     if (key == null) {
-                        return404(ctx);
+                        respondNotFound(ctx);
                         return;
                     }
 
                     if (request.getMethod().equals(HttpMethod.GET)) {
                         byte[] data = ChildInitializer.mapV8.get(key);
                         if (data == null) {
-                            return404(ctx);
+                            respondNotFound(ctx);
                             return;
                         } else {
-                            writeOutGet(ctx, data);
+                            respondOkWithData(ctx, data);
                             return;
                         }
 
@@ -49,19 +49,19 @@ public class ChildInitializer extends ChannelInitializer<SocketChannel> {
                         byte[] body = new byte[request.content().capacity()];
                         request.content().readBytes(body);
                         mapV8.put(key, body);
-                        writeOutPost(ctx);
+                        respondOk(ctx);
 
                     } else if (request.getMethod().equals(HttpMethod.DELETE)) {
                         if (mapV8.remove(key) == null) {
-                            return404(ctx);
+                            respondNotFound(ctx);
                             return;
                         }
 
-                        writeOutDelete(ctx);
+                        respondOk(ctx);
                     }
                 }
 
-                private void return404(ChannelHandlerContext ctx) {
+                private void respondNotFound(ChannelHandlerContext ctx) {
                     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus
                         .NOT_FOUND);
                     HttpHeaders.setKeepAlive(response, false);
@@ -69,7 +69,7 @@ public class ChildInitializer extends ChannelInitializer<SocketChannel> {
                     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
                 }
 
-                private void writeOutGet(ChannelHandlerContext ctx, byte[] data) {
+                private void respondOkWithData(ChannelHandlerContext ctx, byte[] data) {
                     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK,
                         Unpooled.wrappedBuffer(data));
                     HttpHeaders.setKeepAlive(response, false);
@@ -78,17 +78,9 @@ public class ChildInitializer extends ChannelInitializer<SocketChannel> {
                     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
                 }
 
-                private void writeOutPost(ChannelHandlerContext ctx) {
+                private void respondOk(ChannelHandlerContext ctx) {
                     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK,
                         Unpooled.wrappedBuffer(new byte[]{}));
-                    HttpHeaders.setKeepAlive(response, false);
-                    HttpHeaders.setHeader(response, "Content-Type", "text/html; charset=utf-8");
-                    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-                }
-
-                private void writeOutDelete(ChannelHandlerContext ctx) {
-                    final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK,
-                            Unpooled.wrappedBuffer(new byte[]{}));
                     HttpHeaders.setKeepAlive(response, false);
                     HttpHeaders.setHeader(response, "Content-Type", "text/html; charset=utf-8");
                     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
