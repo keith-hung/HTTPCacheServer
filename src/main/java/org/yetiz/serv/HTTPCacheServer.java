@@ -47,6 +47,7 @@ public class HTTPCacheServer {
     }
 
     public void stop() {
+        Optional.ofNullable(channel).ifPresent(channel -> channel.close());
         Optional.ofNullable(boss).ifPresent(elg -> elg.shutdownGracefully());
         Optional.ofNullable(worker).ifPresent(elg -> elg.shutdownGracefully());
     }
