@@ -50,6 +50,14 @@ public class ChildInitializer extends ChannelInitializer<SocketChannel> {
                         request.content().readBytes(body);
                         mapV8.put(key, body);
                         writeOutPost(ctx);
+
+                    } else if (request.getMethod().equals(HttpMethod.DELETE)) {
+                        if (mapV8.remove(key) == null) {
+                            return404(ctx);
+                            return;
+                        }
+
+                        writeOutDelete(ctx);
                     }
                 }
 
@@ -73,6 +81,14 @@ public class ChildInitializer extends ChannelInitializer<SocketChannel> {
                 private void writeOutPost(ChannelHandlerContext ctx) {
                     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK,
                         Unpooled.wrappedBuffer(new byte[]{}));
+                    HttpHeaders.setKeepAlive(response, false);
+                    HttpHeaders.setHeader(response, "Content-Type", "text/html; charset=utf-8");
+                    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+                }
+
+                private void writeOutDelete(ChannelHandlerContext ctx) {
+                    final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK,
+                            Unpooled.wrappedBuffer(new byte[]{}));
                     HttpHeaders.setKeepAlive(response, false);
                     HttpHeaders.setHeader(response, "Content-Type", "text/html; charset=utf-8");
                     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
