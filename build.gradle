@@ -27,6 +27,7 @@ dependencies {
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.6.1'
     // for Logging - end
     testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.1'
 }
 
 buildscript {
