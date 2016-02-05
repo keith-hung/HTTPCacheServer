@@ -7,7 +7,6 @@ import org.yetiz.serv.HTTPCacheServer;
 public class Launcher {
     static {
         System.setProperty(YamlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "logger.yaml");
-
     }
 
     public static void main(String... args) {

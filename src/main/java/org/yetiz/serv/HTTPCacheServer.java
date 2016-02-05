@@ -16,11 +16,17 @@ import java.util.Optional;
  * Created by yeti on 16/2/4.
  */
 public class HTTPCacheServer {
+    private STATUS status = STATUS.Init;
     private EventLoopGroup boss;
     private EventLoopGroup worker;
     private Channel channel;
 
     public void start(int port) {
+        if (!status.equals(STATUS.Init)) {
+            return;
+        }
+        status = STATUS.Ready;
+
         boss = new NioEventLoopGroup();
         worker = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -38,17 +44,28 @@ public class HTTPCacheServer {
                 .bind(port)
                 .sync()
                 .channel();
+            status = STATUS.Connected;
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             stop();
         }
+        return;
     }
 
     public void stop() {
+        status = STATUS.Stopped;
         Optional.ofNullable(channel).ifPresent(channel -> channel.close());
         Optional.ofNullable(boss).ifPresent(elg -> elg.shutdownGracefully());
         Optional.ofNullable(worker).ifPresent(elg -> elg.shutdownGracefully());
+    }
+
+    public STATUS status() {
+        return status;
+    }
+
+    public enum STATUS {
+        Init, Ready, Connected, Stopped
     }
 }
